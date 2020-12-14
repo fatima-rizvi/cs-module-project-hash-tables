@@ -11,6 +11,8 @@ class HashTableEntry:
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
 
+# The hashing function does the hashing bit. You input a string, it outputs a number
+# A hash table using the hashing functin to take the key of a key value pair and hash it into an index
 
 class HashTable:
     """
@@ -21,7 +23,9 @@ class HashTable:
     """
 
     def __init__(self, capacity):
-        # Your code here
+        self.capacity = capacity            # Potential size
+        self.storage = [None] * capacity    # This will fill our list with a capacity number of None's
+        self.size = 0                       # We'll start at zero and count them as we add them
 
 
     def get_num_slots(self):
@@ -34,16 +38,17 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        return self.capacity    # self.capacity is the number of slots we passed in at the beginning. This is the potential size.
 
 
     def get_load_factor(self):
         """
-        Return the load factor for this hash table.
+        Return the load factor (asking how full this is) for this hash table.
 
         Implement this.
         """
-        # Your code here
+        return (self.size / self.capacity) #Return the percentage/fraction/portion of how full this is
+        
 
 
     def fnv1(self, key):
@@ -52,8 +57,21 @@ class HashTable:
 
         Implement this, and/or DJB2.
         """
+        # algorithm fnv-1 :
+        #     hash := FNV_offset_basis
+        #     for each byte_of_data to be hashed do
+        #         hash := hash × FNV_prime
+        #         hash := hash XOR byte_of_data
+            # return hash
 
-        # Your code here
+        FNV_prime = 1099511628211
+        FNV_offset = 14695981039346656037
+        
+        hash = FNV_offset
+        for char in key:
+            hash = hash * FNV_prime
+            hash = hash ^ ord(char) # ord() will convert our srting to the binary equivalent ascii number
+        return hash
 
 
     def djb2(self, key):
@@ -70,8 +88,8 @@ class HashTable:
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        return self.fnv1(key) % self.capacity
+        # return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
@@ -81,8 +99,29 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        index = self.hash_index(key)    # hash_index is a method
+        node = HashTableEntry(key, value)   # hashTableEntry is a class
+        if self.storage[index] is not None: # If there are nodes already at the index
+            if self.storage[index].key == key:  #If the first item at the index is the one we're looking for
+                self.storage[index].value = value # update the value. No need to increment the size because it already existed
+            else:                                   # If the first item is not what we were looking for
+                current = self.storage[index]       # Create a pointer/cursor variable that holds the current node we're looking at
+                while current.next is not None:     # As long as there is a next value
+                    if current.key == key:          # If the current node is the one we were looking for
+                        current.value = value       # Then update the node's value
+                    else:                           # If the current node is not the one we were looking for
+                        current = current.next      # The move the pointer to the next node
+                if current.key == key:          # This catches the edge case since our while loop will not hit the very last node. If the last node is the one we want
+                    current.value = value       # Then update the value
+                else:                           # If the key was not in the list
+                    current.next = node         # Add the new node to the end
+                    self.size += 1              # Increment self.size up by one
 
+
+        else:                               # If there is nothing at the index
+            self.storage[index] = node      # Add the node to self.storage at index
+            self.size += 1                  # Increment self.size up by one
+            
 
     def delete(self, key):
         """
