@@ -70,7 +70,7 @@ class HashTable:
         hash = FNV_offset
         for char in key:
             hash = hash * FNV_prime
-            hash = hash ^ ord(char) # ord() will convert our srting to the binary equivalent ascii number
+            hash = hash ^ ord(char) # ord() will convert our string to the binary equivalent ascii number
         return hash
 
 
@@ -131,7 +131,27 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        # See if the key value pair even exists
+        index = self.hash_index(key)    # Get the index
+        if self.storage[index] is None: # Edge case(?): If there is nothing at the index
+            print("WARNING: Key not found") # Print the warning
+            return                          # End the function
+        if self.storage[index].key == key:  # If the key we're looking for is the first one at the index
+            if self.storage[index].next is not None:    # If there is a next node
+                self.storage[index] = self.storage[index].next  # Replace it with the next node to "delete" it
+            else:                                       # If there isn't a next node
+                self.storage[index] = None              # Set the first node at the index to None
+        else:                                           # If the first key at the index pos is not the one we're looking for
+            current = self.storage[index].next          # Start the cursor at the next one, because we already checked the first one above
+            prev = self.storage[index]                  # Store the previous node
+            while current is not None:                  # While current exists
+                if current.key == key:                  # If the current node is the one we're looking for
+                    prev.next = current.next            # Set the next of the previous to the node after the current, effectively deleting it
+                    self.size -= 1                      # Decrement the size
+                else:                             # If we didn't find the node we were looking for
+                    prev = current                # Move previous to the current one
+                    current = current.next        # Move current to the next one
+
 
 
     def get(self, key):
@@ -142,17 +162,32 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        index = self.hash_index(key)    # Find out what index the key would be at 
+        if self.storage[index] is None: # Edge case: See if there is anything at the index. If there isn't anything:
+            return None                 # Return none
+        current = self.storage[index]   # Create a pointer/cursor starting at the first node at the index
+        while current:               # as long as there is something at the current node
+            if current.key == key:      # If the node we're at has the key we're looking for
+                return current.value    # Return the value
+            else:                       # If it's not what we're looking for
+                current = current.next  # Set current to the next node
+        return None                     # if the while loop never returns something, then the node does not exist in the hashtable and we return None
 
 
-    def resize(self, new_capacity):
+
+    def resize(self, new_capacity): # Use if we filled up all of our indexes and need new ones
         """
         Changes the capacity of the hash table and
         rehashes all key/value pairs.
 
         Implement this.
         """
-        # Your code here
+        self.capacity = new_capacity    # Update the capacity attribute to the new_capacity that was passed in
+        old_storage = self.storage      # We're about to rewrite selfstorage, so we need to save it somewhere. No need to touch self.size
+        self.storage = [None] * self.capacity # Rewrite storage to be a list of None's as long as self.capacity (which has been rewritten in line 185 to be new_capacity)
+        for node in old_storage:        # Iterate through every node in the old storage
+            if node is not None:        # If something exists at the index in old_storage
+                self.put(node.key, node.value)  # Use the put method we created earlier to enter the nodes from the old_storage into the new_storage. The put method generates the index the key would be at and then adds the nodes where they need to go. We only need to move the head nodes of the linked lists, because the head nodes have the next attribute that will point to the rest of the linked list.
 
 
 
