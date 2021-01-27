@@ -1,6 +1,10 @@
 def no_dups(s):
-    # Your code here
-
+    split_sent = s.split()  # split the string
+    output = ''                # create a variable to hold the output
+    for word in split_sent:     # For each word in the split string
+        if output.find(word) == -1: # Look in the output to see if the word is not in it. -1 means false, its not in there
+            output += word + ' '    # If it isn't add the word to the output after a space
+    return output.strip(' ')                # Return the output with .strip to get rid of any trailing whitespace
 
 
 if __name__ == "__main__":
